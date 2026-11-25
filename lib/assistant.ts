@@ -92,7 +92,7 @@ export async function assistant(i:Input,b:Row){
  const result=enabled?await askCopilot({question,asOf:date,context:{page:b.page,filters,coverage:simple.data_coverage},history:history.map(h=>({role:h.role,content:h.content})),tools,log:e=>logs.push(e)}):localAnswer(s,followUp(question)?[...history].reverse().find(h=>h.role==="user"&&!followUp(String(h.content)))?.content+" "+question:question,{prior:from?state(list,{...ctx,asOf:from}).snap:undefined});
  if(!enabled&&/do it|preview|take action|apply plan/i.test(question))propose();
  if(!enabled&&/how much cash does|forecast change/i.test(question)){const last=s.extras.proposals.filter(p=>p.status==="confirmed"&&p.type==="weekly").at(-1);if(last)result.answer+=" Base forecast change since approval: "+rupees(m.forecast.base-last.baseBefore)+"."}
- const reply={...result,engine:enabled?"Gemini":"Local report",proposalId:proposal?.id,asOf:date};
+ const reply={...result,engine:enabled?"Copilot":"Local report",proposalId:proposal?.id,asOf:date};
  await commit(i,()=>({label:"Saved copilot conversation",changes:[change("threads",{id:threadId,filters,asOf:date,pageAsOf:i.asOf,messages:[...history,{role:"user",content:question},{role:"assistant",content:reply.answer,reply}].slice(-60)}),...(proposal?[change("proposals",proposal)]:[]),...logs.map(l=>change("llm_calls",{id:uid("log"),...l}))]}),"Copilot");
  return {threadId,reply,proposal}
 }
