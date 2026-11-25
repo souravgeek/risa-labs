@@ -1,0 +1,21 @@
+import {beforeAll,afterAll,expect,it} from "vitest";
+import {mkdtempSync,rmSync} from "node:fs";
+import {tmpdir} from "node:os";
+import {join} from "node:path";
+import {input,read,command,commit} from "../lib/workspace";
+import {assistant} from "../lib/assistant";
+const dir=mkdtempSync(join(tmpdir(),"campusfest-flow-"));
+beforeAll(()=>{process.env.CAMPUSFEST_DATA_DIR=dir;process.env.GEMINI_API_KEY=""});afterAll(()=>rmSync(dir,{recursive:true,force:true}));
+it("previews eighteen changes, applies them once, and preserves the earlier snapshot",async()=>{
+ const i=input({asOf:"2025-03-20"}),before=await read(i);
+ const earlier=await read(input({asOf:"2025-03-19"}));
+ const res=await assistant(i,{question:"Do it"});const proposed=await read(i),p=proposed.extras.proposals[0];
+ expect(p.actions).toHaveLength(18);expect(proposed.deals.length).toBe(before.deals.length);
+ await assistant(i,{decision:"confirm",proposalId:p.id});const after=await read(i);
+ expect(after.qualifiedWithoutDeal.length).toBe(5);expect(after.deals.length-before.deals.length).toBe(12);expect(after.forecast.base).toBeGreaterThan(before.forecast.base);
+ expect(after.extras.tasks.length).toBe(5);expect(after.campaigns.find(c=>c.name==="Brand Discovery Email")?.status).toBe("paused");
+ await expect(assistant(i,{decision:"confirm",proposalId:p.id})).rejects.toThrow();expect((await read(input({asOf:"2025-03-19"}))).counts).toEqual(earlier.counts);
+ const inv=after.invoices.find(v=>v.balance>1000)!;
+ await commit(i,s=>command(s,i,{kind:"payment",invoiceId:inv.id,amount:1000,date:i.asOf,method:"UPI"}));
+ expect((await read(i)).cash.collected).toBe(after.cash.collected+1000);
+});

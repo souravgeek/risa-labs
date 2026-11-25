@@ -1,0 +1,2 @@
+import {runAutomations,istDate} from "@/lib/automation";
+export async function GET(r:Request){if(!process.env.CRON_SECRET||r.headers.get("authorization")!=="Bearer "+process.env.CRON_SECRET)return Response.json({error:"Unauthorized"},{status:401});const asOf=istDate();if(!asOf.startsWith("2026"))return Response.json({skipped:true});await runAutomations({season:"2026",asOf},new URL(r.url).searchParams.has("morning"));return Response.json({ok:true})}

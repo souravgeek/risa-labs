@@ -1,0 +1,17 @@
+"use client";
+import React,{useState} from "react";
+import {Bell,Check,Search,Layers3,ArrowUpRight,CalendarClock} from "lucide-react";
+import {useDesk,type ModalSpec,type R} from "./context";
+import {Empty,Sheet,Tag} from "./common";
+import {actionsDate,niceDate} from "@/lib/shared";
+import {FilterForm} from "./filter-form";
+export function Globals({modal:m}:{modal:ModalSpec}){const x=useDesk(),{data:d,open}=x,[date,setDate]=useState(x.asOf),[filters,setFilters]=useState(x.filters),[q,setQ]=useState("");const close=()=>open(null),opts=m.extra?.options||d;
+ const titles:Record<string,string>={season:"Select festival workspace",owner:"View as owner",date:"Snapshot date",filters:"Filter workspace",search:"Search workspace",notifications:"Notifications"};
+ return <Sheet title={titles[m.kind]} close={close} side={m.kind==="notifications"}><div className="form-body">
+ {m.kind==="season"&&["2025","2026"].map(y=><button className="option" key={y} onClick={()=>x.setSeason(y)}><Layers3 size={20}/><span><b>{y==="2026"?"Unmaad 2027":"2025 history · provided dataset"}</b><small>{y==="2025"?"Assignment workbook, fictional records (fest 12–13 Apr 2025) · real brand names mapped on, not real Unmaad data":"Live season · 26–28 Feb 2027 · simulated pipeline"}</small></span>{x.season===y&&<Check size={17}/>}</button>)}
+ {m.kind==="owner"&&d.owners.map((o:R)=><button className="option" key={o.id} onClick={()=>{x.setOwner(o.id);close()}}><span><b>{o.name}</b><small>{o.id}</small></span>{x.owner===o.id&&<Check size={17}/>}</button>)}
+ {m.kind==="date"&&<form onSubmit={e=>{e.preventDefault();x.setDate(date);close()}}><label>As of date<input type="date" required min={x.season+"-01-01"} max={x.season+"-12-31"} value={date} onChange={e=>setDate(e.target.value)}/></label><p className="hint">Includes records through the end of this date in India.</p><div className="chip-list">{(x.season==="2025"?["2025-02-15","2025-03-15","2025-03-20","2025-04-11"]:[actionsDate("2026"),d.festivalDate]).map(t=><button key={t} type="button" className={"chip "+(t===date?"picked":"")} onClick={()=>setDate(t)}>{niceDate(t)}</button>)}</div><button className="btn primary">Apply date</button></form>}
+ {m.kind==="filters"&&<FilterForm opts={opts} initial={filters} apply={f=>{x.setFilters(f);close()}}/>}
+ {m.kind==="search"&&<><label className="inline-search"><Search size={17}/><input autoFocus placeholder="Search brands, deals and campaigns" aria-label="Search records" value={q} onChange={e=>setQ(e.target.value)}/></label>{[...d.brands.map((r:R)=>({...r,type:"Brand"})),...d.deals.map((r:R)=>({...r,type:"Deal"})),...d.campaigns.map((r:R)=>({...r,type:"Campaign"}))].filter(r=>(r.name+" "+r.id+" "+(r.aka||"")).toLowerCase().includes(q.toLowerCase())).slice(0,20).map(r=><button key={r.type+r.id} className="option" onClick={()=>open({kind:r.type==="Brand"?"brand":r.type==="Deal"?"stage":"campaign",row:r})}><span><b>{r.name}</b><small>{r.type} · {r.id}{r.aka&&r.aka!==r.name?" · dataset name: "+r.aka:""}</small></span><ArrowUpRight size={15}/></button>)}</>}
+ {m.kind==="notifications"&&<>{d.extras.notifications.filter((r:R)=>r.owner===x.owner).length?<><button className="btn" onClick={()=>x.act({kind:"read"})}>Mark as read</button>{d.extras.notifications.filter((r:R)=>r.owner===x.owner).toReversed().map((r:R)=><div className="notice" key={r.id}><Bell size={17}/><span>{r.message}</span>{!r.read&&<Tag tone="green">New</Tag>}</div>)}</>:<Empty text="You're all caught up. Owner alerts appear here."/ >}</>}
+ </div></Sheet>}

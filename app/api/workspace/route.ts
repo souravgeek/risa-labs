@@ -1,0 +1,5 @@
+import {input,read,command,commit} from "@/lib/workspace";
+import {entries} from "@/lib/storage";
+export const dynamic="force-dynamic";
+export async function GET(r:Request){try{const q=Object.fromEntries(new URL(r.url).searchParams);if(q.version)return Response.json({version:(await entries(q.season==="2026"?"2026":"2025")).length});const i=input({...q,filters:Object.fromEntries(["channel","industry","owner","campaign"].filter(k=>q[k]&&(k!=="owner")).map(k=>[k,q[k]]))});if(q.filterOwner)i.filters!.owner=q.filterOwner;return Response.json(await read(i))}catch(e){return Response.json({error:(e as Error).message},{status:400})}}
+export async function POST(r:Request){try{if(r.headers.get("origin")&&new URL(r.headers.get("origin")!).host!==(r.headers.get("host")||new URL(r.url).host))throw Error("Origin mismatch.");const b=await r.json(),i=input(b);const result=await commit(i,s=>command(s,i,b.action),i.owner,b.requestId);return Response.json({ok:true,message:result?.label,warning:result?.warning})}catch(e){return Response.json({error:(e as Error).message},{status:400})}}

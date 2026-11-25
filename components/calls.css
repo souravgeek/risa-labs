@@ -1,0 +1,70 @@
+.call-page,.call-form,.call-evidence{display:grid;gap:16px}
+.call-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid #d9e2dc;border-radius:14px;background:#fff;overflow:hidden}
+.call-summary>div{padding:20px 22px;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border-right:1px solid #e0e7e2}
+.call-summary>div:last-child{border-right:0}
+.call-summary svg{color:#36775c;grid-column:2;grid-row:1}
+.call-summary b{font-size:1.7rem;line-height:1.1;grid-row:1;grid-column:1}
+.call-summary span{color:#55675e;font-size:.88rem;grid-column:1/-1}
+.call-body{padding:20px 24px 24px;display:grid;gap:16px;min-width:0}
+.call-body h3,.call-body p,.call-body dl{margin:0}
+.call-body h3{font-size:1.25rem}
+.call-body small,.call-brief dt,.call-evidence dt{color:#586960}
+.call-body .field{min-width:0}
+.call-body input:not([type=checkbox]),.call-body select{width:100%;min-width:0}
+.call-form .btn{justify-self:start}
+.call-body .btn,.call-page .btn{white-space:normal}
+.call-meta,.call-actions,.call-live{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.call-live{color:#276747}
+.call-consent{display:flex;align-items:flex-start;gap:10px;line-height:1.5;font-size:.92rem}
+.call-consent input{margin-top:5px;width:16px;height:16px;flex-shrink:0;accent-color:#226641}
+.call-field-pair,.call-brief{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.call-brief{background:#f1f6f1;padding:13px 16px;border-radius:9px}
+.call-brief dt,.call-evidence dt{font-size:.82rem}
+.call-brief dd,.call-evidence dd{margin:3px 0 0;font-weight:600}
+.call-evidence{gap:0}
+.call-evidence>div{border-top:1px solid #e2e9e4;padding:10px 0}
+.call-evidence q,.call-transcript p{display:block;line-height:1.5;font-size:.9rem;color:#4e6055}
+.call-evidence q{font-weight:400;margin-top:4px}
+.call-disclosure,.call-review{border-left:3px solid #377a57;background:#f0f5f1;padding:12px 15px;font-size:.92rem}
+.call-review p{margin:6px 0 12px}
+.call-transcript summary{cursor:pointer;font-weight:650}
+.call-transcript p{margin-top:8px}
+.call-transcript b{display:block;color:#193d2a}
+.call-error{color:#9a342d;font-size:.9rem}
+.call-breakdown{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;padding:0 20px 16px}
+.call-breakdown h3{font-size:.88rem}
+.call-breakdown p{display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid #e2e9e4;margin:6px 0;padding:5px 0}
+@media(max-width:720px){.call-summary{grid-template-columns:1fr 1fr}.call-summary>div{padding:15px}.call-summary>div:nth-child(2){border-right:0}.call-summary>div:nth-child(-n+2){border-bottom:1px solid #e0e7e2}.call-breakdown{grid-template-columns:1fr}.call-body{padding:16px}.call-field-pair{grid-template-columns:1fr}}
+
+/* In-app phone call */
+.phone{display:flex;flex-direction:column;gap:12px;min-height:0}
+.phone-top{display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;background:#183e32;color:#fff}
+.phone-avatar{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--lime);color:#183e32;font-weight:700;flex:none}
+.phone-who{display:flex;flex-direction:column;min-width:0;flex:1}.phone-who b{font-size:15px}.phone-who span{font-size:12.5px;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.phone-timer{font-variant-numeric:tabular-nums;font-weight:600;display:flex;align-items:center;gap:6px}.phone-timer small{opacity:.6;font-weight:400}
+.phone-timer i{width:8px;height:8px;border-radius:50%;background:#ff6b5b;animation:phone-blink 1.4s infinite}
+.phone-state{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.phone-state .pulse{width:9px;height:9px;border-radius:50%;background:#b9c3bc}
+.phone-state[data-status=listening] .pulse{background:#2f9e5f;animation:phone-pulse 1.2s infinite}
+.phone-state[data-status=agent] .pulse{background:#183e32;animation:phone-pulse 1.2s infinite}
+.phone-state[data-status=thinking] .pulse{background:#d29a1f;animation:phone-blink .9s infinite}
+.phone-avg{margin-left:auto;display:inline-flex;align-items:center;gap:3px;font-variant-numeric:tabular-nums;color:var(--green);font-weight:600}
+.phone-log{display:flex;flex-direction:column;gap:10px;max-height:min(46vh,420px);overflow-y:auto;padding:4px 2px}
+.bubble{max-width:86%;padding:9px 12px;border-radius:14px;position:relative;font-size:14px;line-height:1.45}
+.bubble p{margin:2px 0 0}.bubble .who{font-size:11px;font-weight:600;opacity:.65;text-transform:uppercase;letter-spacing:.03em}
+.bubble.agent{align-self:flex-start;background:#eef3ec;border:1px solid var(--border);border-bottom-left-radius:4px}
+.bubble.sponsor{align-self:flex-end;background:#183e32;color:#fff;border-bottom-right-radius:4px}
+.bubble.interim{opacity:.7;border:1px dashed #183e32;background:transparent;color:var(--ink)}
+.bubble .lat{display:inline-flex;align-items:center;gap:2px;margin-top:4px;font-size:11px;font-weight:600;color:var(--green);font-variant-numeric:tabular-nums;cursor:help}
+.dots{display:inline-flex;gap:4px;padding:4px 0}.dots i{width:6px;height:6px;border-radius:50%;background:#7d8b82;animation:phone-blink 1s infinite}.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+.phone-reply{display:flex;gap:8px;align-items:center}.phone-reply input{flex:1;min-width:0;height:40px;padding:0 12px;border:1px solid var(--border);border-radius:10px;background:#fff;color:var(--ink)}
+.phone-mic{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:#fff;display:grid;place-items:center;color:#183e32;flex:none}
+.phone-mic.on{background:#2f9e5f;color:#fff;border-color:#2f9e5f;animation:phone-pulse 1.2s infinite}
+.phone-controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;font-size:13px}
+.phone-controls label{display:flex;align-items:center;gap:6px;white-space:nowrap}.phone-controls select{height:32px;border-radius:8px;border:1px solid var(--border);padding:0 6px;background:#fff;color:var(--ink)}
+.phone-check input{accent-color:#183e32}.phone-spacer{flex:1}
+.phone-hangup{background:#c8412e!important;color:#fff!important;border-color:#c8412e!important}
+@keyframes phone-pulse{0%{box-shadow:0 0 0 0 rgba(47,158,95,.45)}100%{box-shadow:0 0 0 10px rgba(47,158,95,0)}}
+@keyframes phone-blink{50%{opacity:.35}}
+@media (prefers-reduced-motion:reduce){.phone *{animation:none!important}}
+.call-dates{font-size:13px;color:var(--muted);margin:-4px 0 8px}

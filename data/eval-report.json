@@ -1,0 +1,275 @@
+{
+ "ranAt": "2026-11-25T12:50:50.746Z",
+ "engine": "Local report",
+ "passed": 30,
+ "total": 30,
+ "passRate": 1,
+ "byType": {
+  "Lookup": {
+   "passed": 10,
+   "total": 10
+  },
+  "Calculation": {
+   "passed": 6,
+   "total": 6
+  },
+  "Diagnosis": {
+   "passed": 5,
+   "total": 5
+  },
+  "Follow-up": {
+   "passed": 4,
+   "total": 4
+  },
+  "Can't answer": {
+   "passed": 5,
+   "total": 5
+  }
+ },
+ "results": [
+  {
+   "type": "Lookup",
+   "questions": [
+    "Confirmed value as of 15 Mar 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Lookup",
+   "questions": [
+    "Confirmed value as of 11 Apr 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Lookup",
+   "questions": [
+    "Confirmed value as of 15 Feb 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Lookup",
+   "questions": [
+    "How much cash is collected as of 20 Mar 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Lookup",
+   "questions": [
+    "What is overdue as of 20 Mar 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Lookup",
+   "questions": [
+    "How many deals are stalled as of 20 Mar 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Lookup",
+   "questions": [
+    "What is the open pipeline in the funnel as of 11 Apr 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Lookup",
+   "questions": [
+    "How many brands are qualified in the funnel as of 15 Mar 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Lookup",
+   "questions": [
+    "How many brands were contacted? Show the funnel as of 15 Feb 2025"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Lookup",
+   "questions": [
+    "What is the forecast as of 20 Mar 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Calculation",
+   "questions": [
+    "Deals needed per week as of 20 Mar 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Calculation",
+   "questions": [
+    "Deals needed per week as of 15 Mar 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Calculation",
+   "questions": [
+    "Are we behind on partnerships as of 11 Apr 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Calculation",
+   "questions": [
+    "How much cash does the plan add before the festival as of 20 Mar 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Calculation",
+   "questions": [
+    "Compare warm vs cold as of 11 Apr 2025"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Calculation",
+   "questions": [
+    "What changed between 15 Mar 2025 and 20 Mar 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Diagnosis",
+   "questions": [
+    "Which campaign should we stop as of 11 Apr 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Diagnosis",
+   "questions": [
+    "Which campaigns should we scale as of 11 Apr 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Diagnosis",
+   "questions": [
+    "Which deals are stalled as of 20 Mar 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Diagnosis",
+   "questions": [
+    "Where are we leaking qualified brands as of 11 Apr 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Diagnosis",
+   "questions": [
+    "Which owner is overloaded as of 11 Apr 2025?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Follow-up",
+   "questions": [
+    "Show the funnel as of 15 Mar 2025",
+    "Now only LinkedIn"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Follow-up",
+   "questions": [
+    "Confirmed value as of 15 Mar 2025?",
+    "And a month earlier?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Follow-up",
+   "questions": [
+    "Show the funnel as of 20 Mar 2025",
+    "Now just Education"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Follow-up",
+   "questions": [
+    "Show the funnel only for LinkedIn as of 20 Mar 2025",
+    "Now all channels"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Can't answer",
+   "questions": [
+    "Which of these sponsors will renew next year?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Can't answer",
+   "questions": [
+    "What is Beardo's sponsor budget?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Can't answer",
+   "questions": [
+    "Did the activations cause sponsors to sign?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Can't answer",
+   "questions": [
+    "Why did we lose deals?"
+   ],
+   "passed": true,
+   "problems": []
+  },
+  {
+   "type": "Can't answer",
+   "questions": [
+    "How much did we actually spend on LinkedIn?"
+   ],
+   "passed": true,
+   "problems": []
+  }
+ ]
+}

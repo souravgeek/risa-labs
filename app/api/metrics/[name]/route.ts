@@ -1,0 +1,5 @@
+import {input,state} from "@/lib/workspace";
+import {entries} from "@/lib/storage";
+import {compareSnapshots,rankBottlenecks} from "@/lib/decision";
+import {dateAdd} from "@/lib/shared";
+export async function GET(r:Request,c:{params:Promise<{name:string}>}){try{const q=Object.fromEntries(new URL(r.url).searchParams),i=input({...q,filters:q}),l=await entries(i.season),m=state(l,i).snap;const {name}=await c.params;const result=({cash_summary:m.cash,funnel:m.funnel,pacing:m.pacing,forecast:m.forecast,campaign_scorecard:m.campaigns,stalled_deals:m.stalled,leakage:m.leakage} as Record<string,unknown>)[name]??(name==="what_changed"?compareSnapshots(state(l,{...i,asOf:q.from||dateAdd(i.asOf,-7)}).snap,m):name==="bottlenecks"?rankBottlenecks(m,state(l,{...i,filters:{...i.filters,channel:"warm"}}).snap):name==="segment_compare"?["warm","cold"].map(channel=>({channel,counts:state(l,{...i,filters:{...i.filters,channel}}).snap.counts})):null);return result===null?Response.json({error:"Unknown metric"},{status:404}):Response.json(result)}catch(e){return Response.json({error:(e as Error).message},{status:400})}}
