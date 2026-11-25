@@ -1,0 +1,4 @@
+# Gemini model names are public identifiers, not secrets; they appear as defaults in code and docs.
+# Secret scanning stays on for GEMINI_API_KEY and the Supabase keys.
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "GEMINI_TEXT_MODEL,GEMINI_LIGHT_MODEL,GEMINI_LIVE_MODEL"
