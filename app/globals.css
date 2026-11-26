@@ -7,3 +7,20 @@
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 .sidebar nav a svg{stroke-width:1.65}.cash-hero{background-color:#173d2f}.hero-main p:after{content:""}.metric-card,.hero-money,.chart-footer{font-variant-numeric:tabular-nums}
 .brand-evidence{font-size:13px;line-height:1.5;padding:10px 12px;border:1px solid var(--border);border-radius:10px;background:#fff}.brand-evidence p{margin:0}.brand-evidence .hint{margin-top:4px;color:var(--muted)}.brand-evidence a{color:var(--green);text-decoration:underline}
+
+.dashboard-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+.dashboard-tabs a {
+  border-radius: 6px;
+  padding: 7px 11px;
+  color: var(--muted);
+  font-weight: 580;
+  font-size: .87rem;
+}
+.dashboard-tabs a:hover { background: #edf1e8; }
+.dashboard-tabs a[aria-current="page"] { background: #dceccf; color: #294b30; }
+.dashboard-tabs small { font-weight: 400; }
