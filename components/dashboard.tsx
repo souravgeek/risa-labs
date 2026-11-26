@@ -23,17 +23,7 @@ export function Attention(){const {data:d,go}=useDesk();const leak=d.leakage[0];
 export function Funnel(){const {data:d,open}=useDesk();return <Panel title="Sponsorship funnel" action={<Tag>{d.season==="2025"?"Source & simulated":"Simulated"}</Tag>}><div className="funnel">{d.funnel.map((f:R)=><button key={f.key} onClick={()=>open({kind:"records",title:f.label,rows:d.brands.filter((b:R)=>f.brandIds.includes(b.id))})}><span>{f.label}</span><i><u style={{width:(Math.min(100,100*f.count/Math.max(1,d.funnel[0].count)))+"%"}}/></i><strong>{f.count}</strong><small>{f.conversion==null?"—":pct(f.conversion)} · {f.lost??0} lost</small></button>)}</div></Panel>}
 export function Dashboard() {
  const {tab} = useDesk();
- const guideOpen = tab === "Product Guide";
-
- return <>
-  <nav className="dashboard-tabs" aria-label="Dashboard views">
-   <a href="#command-center" aria-current={guideOpen ? undefined : "page"}>Overview</a>
-   <a href="#command-center/Product%20Guide" aria-current={guideOpen ? "page" : undefined}>
-    Product Guide <small>(for information purpose only)</small>
-   </a>
-  </nav>
-  {guideOpen ? <ProductGuide/> : <DashboardOverview/>}
- </>;
+ return tab === "Product Guide" ? <ProductGuide/> : <DashboardOverview/>;
 }
 
 function DashboardOverview(){const {data:d,open}=useDesk();return <><CashHero/><Metrics/><div className="dashboard-columns"><PaceChart/><Attention/></div><div className="dashboard-columns lower"><Funnel/><div><Panel title="Cash forecast" action={<Tag>Assumed</Tag>}>{["committed","base","stretch"].map(k=><button className="forecast-row" key={k} onClick={()=>open({kind:"info",title:titleCase(k)+" forecast",extra:{text:{committed:"Collected cash plus unpaid pre-festival invoices weighted by the on-time payment assumption.",base:"Committed cash plus probability-weighted cash from open deals, adjusted for stage, channel and time to collect.",stretch:"Base forecast plus the estimated opportunity from qualified brands without deals."}[k]}})}><span>{titleCase(k)}<Info size={13}/></span><strong>{rupees(d.forecast[k])}</strong></button>)}</Panel><Panel title="Targets vs actual"><div className="target-pair"><span><Flag size={16}/>Qualified brands</span><b>{d.counts.qualified} / {d.targets.qualified}</b></div><div className="target-pair"><span><Target size={16}/>Confirmed deals</span><b>{d.counts.confirmed} / {d.targets.confirmed}</b></div></Panel></div></div></>}
