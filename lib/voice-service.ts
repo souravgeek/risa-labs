@@ -10,7 +10,6 @@ import { eraseDemoContact } from './voice-privacy';
 
 const purposes: CallPurpose[]=['payment reminder','stalled deal','inbound lead'];
 const calendar = new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',year:'numeric',month:'2-digit',day:'2-digit'});
-const hour = new Intl.DateTimeFormat('en-GB',{timeZone:'Asia/Kolkata',hour:'2-digit',hourCycle:'h23'});
 const requireValue=(condition:unknown,message:string)=>{if(!condition)throw new Error(message)};
 const sha=(key:string)=>createHash('sha256').update(key).digest('hex');
 const hasOptOut=(s:string)=>/\b(stop (?:calling|contacting)(?: me| us)?|do(?:n['’]t| not) (?:call|contact)(?: me| us)?|remove me from (?:the|your) list|no more calls)\b/i.test(s);
@@ -60,7 +59,6 @@ function permission(history:Entry[],contactId:string,brandId:string) {
   requireValue(enabled,'The call agent is turned off in Settings.');
   requireValue(active && !optedOut,'This demo contact has been removed or opted out.');
   requireValue(recent.size<3,'This contact has reached the daily limit of three calls.');
-  const nowHour=Number(hour.format(new Date())); requireValue(nowHour>=9 && nowHour<20,'Calls are available from 09:00 to 20:00 IST.');
 }
 function interaction(i:Input,brandId:string,ownerId:string,campaignId:string,event_type:string,summary:string){
   return change('sponsor_interactions',{interaction_id:uid('SI'),attempt_id:uid('SA'),brand_id:brandId,owner_id:ownerId,sponsor_campaign_id:campaignId,
@@ -98,7 +96,7 @@ function completion(s:State,i:Input,c:Row,transcript:Transcript,insights:Awaited
 }
 export async function handleCall(i:Input,a:Row):Promise<Row> {
   const kind=a.kind;
-  if(kind==='capabilities')return {gemini:geminiConfigured(),hours:'09:00–20:00 IST'};
+  if(kind==='capabilities')return {gemini:geminiConfigured()};
   if(kind==='eligible'){
     const s=await current(i);
     return {gemini:geminiConfigured(),enabled:s.settings.callsEnabled!==false,brands:s.snap.brands.map(b=>({id:b.id,name:b.name,purposes:availablePurposes(s,b.id,i.asOf)})).filter(b=>b.purposes.length).sort((a,b)=>a.name.localeCompare(b.name))};

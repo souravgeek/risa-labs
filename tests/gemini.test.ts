@@ -67,10 +67,10 @@ describe('call service via HTTP route handler',()=>{
     expect(erased.extras.calls.find(c=>c.id===session.id)?.transcript).toEqual([]);
     expect(JSON.stringify(await entries('2025'))).not.toContain('Maya');
   });
-  it('refuses calls outside real IST hours and refuses browser mode without a server key',async()=>{
+  it('allows calls at any IST hour and refuses browser mode without a server key',async()=>{
     workingHours();const contactId=await contact('Ravi','A037');const params={kind:'start',brandId:'A037',purpose:'stalled deal',contactId,confirm:true};
     expect((await api({...params,mode:'browser'})).error).toContain('GEMINI_API_KEY');
-    vi.setSystemTime(new Date('2026-11-25T16:00:00Z'));expect((await api({...params,mode:'simulated'})).error).toContain('09:00');
+    vi.setSystemTime(new Date('2026-11-25T16:00:00Z'));expect((await api({...params,mode:'simulated'})).error ?? '').not.toContain('09:00');
   });
   it('checks the browser capability, deactivates consent on the sponsor opt-out, and supports idempotent chunks',async()=>{
     workingHours();const contactId=await contact('Asha','A047'),id='CALL-test-voice',sessionKey='a'.repeat(48);

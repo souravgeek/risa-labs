@@ -199,7 +199,7 @@ Every threshold, window, rate and weight can be edited under **Settings**. Chang
   - Covers warm contacts only: payment reminders, stalled deals and inbound leads.
   - Every call opens with a fixed AI disclosure line, and a call whose transcript lacks it is flagged.
   - A hard allowlist plus consent gates every call. Numbers are never sent to Gemini.
-  - Limits: 3 calls per contact per day, 09:00–20:00 IST, a 5-minute cap and a kill switch.
+  - Limits: 3 calls per contact per day, a 5-minute cap and a kill switch.
   - Every extracted field must carry a quote found in the transcript, or it is set to unknown.
   - An opt-out applies instantly. Stage and payment-promise changes wait for a person to confirm.
   - Modes: **phone call** (the default, inside the app: Gemini pitches and you answer as the sponsor by voice or text; see below), simulated text (scripted offline, or Gemini playing both sides), and browser voice over the Gemini Live API with an ephemeral token per call.
@@ -230,7 +230,7 @@ The reasons for each are in the build spec.
 | Metric checkpoints, no-leakage, dedupe, append-only, changed data, decision desk, prospect routing, custom rules, cold-touch warning, copilot question parsing, phone-call streaming, hedging, spoken-date resolution and linked filters | `npm test` | 53 / 53 passing |
 | Copilot eval: 10 lookup, 6 calculation, 5 diagnosis, 4 follow-up, 5 can't-answer | `npm run eval` | **30 / 30 (100%)** on the local engine |
 | Call extraction on 20 seeded calls (interest, decision-maker, objection) | part of `npm test` | **60 / 60 fields**, disclosure present in all 20 |
-| Call safety: allowlist, consent, hours, daily limit, opt-out, deletion | part of `npm test` | passing |
+| Call safety: allowlist, consent, daily limit, opt-out, deletion | part of `npm test` | passing |
 
 How to read these:
 - **Expected values are computed, not typed.** Eval cases compute their expected values from the metrics engine when they run, so the set stays valid after a reviewer changes the data. Results are written to [data/eval-report.json](data/eval-report.json).
@@ -277,7 +277,7 @@ Two additions for reliability:
 - **Hedged requests.** If a model hasn't sent a token within 2 s, a fallback model starts. If that stalls as well, all remaining models start at once, and the first to stream wins. A quota error moves on immediately, with no hidden SDK retries.
 - **Adaptive ordering.** The model that answered most recently is tried first, and a model that just stalled waits two minutes before it is tried again. The copilot and call analysis share the same model health.
 
-The call keeps the same safety rails as every other mode: consent allowlist, 09:00–20:00 IST, 3 calls per contact per day, a 5-minute cap, an instant opt-out on "stop calling", sponsor words saved before the agent replies, and proposals that a person must approve.
+The call keeps the same safety rails as every other mode: consent allowlist, 3 calls per contact per day, a 5-minute cap, an instant opt-out on "stop calling", sponsor words saved before the agent replies, and proposals that a person must approve.
 
 Measured on 25 Nov 2026 against the live Gemini API (free-tier key):
 
