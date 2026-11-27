@@ -80,16 +80,50 @@ export async function assistant(i:Input,b:Row){
  const ctx={...i,filters,asOf:date},s=state(list,ctx),m=s.snap,history=(prev?.messages||[]) as Row[];
  let proposal:Row|undefined;
  const propose=()=>{const actions=plan(s,ctx);proposal={id:uid("proposal"),type:"weekly",actions,asOf:date,status:"proposed"};return actions.map(a=>a.description)};
- const tools:Record<string,CopilotTool>={};const expose=(name:string,run:CopilotTool["run"],parameters?:Record<string,unknown>)=>{tools[name]={description:name.replaceAll("_"," "),run,parameters}};
- const simple:Record<string,unknown>={get_funnel:m.funnel,get_cash_summary:m.cash,get_pacing:{...m.pacing,points:undefined,daysLeft:m.daysLeft,counts:m.counts,targets:m.targets},get_campaign_scorecard:m.campaigns,list_stalled_deals:m.stalled.map(d=>({brand:d.brand,value:d.value,days:d.daysInStage})),find_leakage:m.leakage,list_tasks:s.extras.tasks,call_insights:s.extras.calls.map(c=>({brand:c.brand,insights:c.insights})),data_coverage:"2025 workbook has no receipts, spend, sponsor budgets, causal evidence or renewals. Cash ledger simulated."};
- for(const [k,v] of Object.entries(simple))expose(k,()=>v);
+ const tools:Record<string,CopilotTool>={};const expose=(name:string,description:string,run:CopilotTool["run"],parameters?:Record<string,unknown>)=>{tools[name]={description,run,parameters}};
+ const simple:Record<string,[string,unknown]>={
+  get_pacing:["Overall status: confirmed partnerships vs target, days left, deals needed per week, open pipeline value.",{...m.pacing,points:undefined,daysLeft:m.daysLeft,counts:m.counts,targets:m.targets}],
+  get_funnel:["Brand funnel counts by stage (contacted, meeting, qualified, deal, confirmed).",m.funnel],
+  get_cash_summary:["Confirmed cash and in-kind value, invoiced, collected and overdue totals.",m.cash],
+  get_campaign_scorecard:["Every outreach campaign with attempts, reply/positive/win rates, confirmations, assumed budget, ROI and verdict.",m.campaigns],
+  list_stalled_deals:["Open deals past their stalled threshold, with brand, value, owner and days in stage.",m.stalled.map(d=>({brand:d.brand,dealId:d.id,stage:d.stage,value:d.value,owner:d.owner,days:d.daysInStage}))],
+  find_leakage:["Leakage rules: qualified brands without a deal, slipped handoffs, overdue items, with the records behind each.",m.leakage],
+  get_owner_workload:["Each team member's brands, open deals, stalled deals and weekly capacity hours.",m.owners],
+  list_tasks:["All follow-up tasks with title, brand, due date, owner and status.",s.extras.tasks],
+  call_insights:["Completed and attempted sponsor calls with extracted outcome, objections, interest and next step.",s.extras.calls.map(c=>({id:c.id,brand:c.brand,brandId:c.brandId,status:c.status,purpose:c.purpose,endedAt:c.endedAt,insights:c.insights}))],
+  data_coverage:["What the records do and do not contain. Use when a question may be outside the data.","2025 workbook has no receipts, spend, sponsor budgets, causal evidence or renewals. Cash ledger simulated."]};
+ for(const [k,[d,v]] of Object.entries(simple))expose(k,d,()=>v);
  const obj=(properties:Row)=>({type:"object",properties});
- expose("get_forecast",args=>scenarioForecast(m,args),obj({recover:{type:"number"},partners:{type:"number"}}));
- expose("propose_actions",propose);expose("what_changed",a=>compareSnapshots(state(list,{...ctx,asOf:String(a.from||from||dateAdd(date,-7))}).snap,m),obj({from:{type:"string"}}));
- expose("compare_segments",()=>["warm","cold"].map(channel=>{const n=state(list,{...ctx,filters:{...filters,channel}}).snap;return {channel,counts:n.counts,cash:n.cash}}));
- for(const k of ["search_entities","get_entity","query_records"])expose(k,a=>[...m.brands,...m.deals,...m.campaigns].filter(r=>(r.name+" "+r.id+" "+("aka" in r?r.aka:"")).toLowerCase().includes(String(a.query||"").toLowerCase())).slice(0,200).map(r=>({id:r.id,name:r.name,...("aka" in r&&r.aka?{datasetName:r.aka}:{}),...("realBrand" in r&&r.realBrand?{evidence:r.realBrand.evidenceNote}:{})})),obj({query:{type:"string"}}));
+ const norm=(v:unknown)=>String(v||"").toLowerCase().replace(/[^a-z0-9]/g,"");
+ const day=(v:unknown)=>typeof v==="string"?v.slice(0,10):v;
+ /** Everything the records hold about one brand: deals with stage history, invoices, payments, interactions, tasks and calls. */
+ const dossier=(b:State["snap"]["brands"][number])=>{
+  const deals=m.deals.filter(d=>d.brandId===b.id),ids=new Set(deals.map(d=>d.id));
+  const invoices=m.invoices.filter(v=>v.brandId===b.id||ids.has(v.dealId)),inv=new Set(invoices.map(v=>v.id));const r=b as Row;
+  return {brand:{id:b.id,name:b.name,...(r.aka?{datasetName:r.aka}:{}),industry:r.industry,owner:r.owner,qualification:r.qualification,channelGroup:r.group,campaign:m.campaigns.find(c=>c.id===r.campaignId)?.name,...(r.realBrand?.evidenceNote?{pastAssociation:r.realBrand.evidenceNote}:{})},
+   deals:deals.map(d=>({id:d.id,name:d.name,stage:d.stage.replaceAll("_"," "),proposedValue:d.proposedValue,confirmedValue:d.confirmedValue,supportType:d.supportType,owner:d.owner,daysInStage:d.daysInStage,inStageSince:day(d.stageSince),stalled:d.stalled,channel:d.channel,stageHistory:((d as Row).history||[]).map((h:Row)=>h.stage.replaceAll("_"," ")+" on "+day(h.effective_at))})),
+   invoices:invoices.map(v=>({id:v.id,milestone:(v as Row).milestone,amount:v.amount,paid:v.paid,balance:v.balance,status:(v as Row).status,dueOn:day(v.dueAt)})),
+   payments:m.payments.filter(p=>inv.has(p.invoiceId)).map(p=>({invoiceId:p.invoiceId,amount:p.amount,receivedOn:day(p.receivedAt),method:(p as Row).method})),
+   recentInteractions:m.interactions.filter(x=>x.brandId===b.id).sort((x,y)=>String(y.date).localeCompare(String(x.date))).slice(0,6).map(x=>({on:day(x.date),channel:x.channel,type:x.type,outcome:(x as Row).outcome,summary:(x as Row).summary})),
+   tasks:s.extras.tasks.filter(t=>t.brandId===b.id).map(t=>({title:t.title,due:t.due,status:t.status,owner:m.owners.find(o=>o.id===t.owner)?.name||t.owner,priority:t.priority})),
+   calls:s.extras.calls.filter(c=>c.brandId===b.id).map(c=>({id:c.id,status:c.status,purpose:c.purpose,endedOn:day(c.endedAt),outcome:c.insights?.fields?.outcome,objections:c.insights?.fields?.objections,nextStep:c.insights?.fields?.nextStep}))}
+ };
+ /** Brands whose name, dataset name or deal name appears in the text. Short names (LG, JSW) must match a whole word. */
+ const namedIn=(text:string)=>{const t=norm(text),lower=text.toLowerCase();return m.brands.filter(b=>[b.name,(b as Row).aka].filter(Boolean).some(n=>norm(n).length>=4?t.includes(norm(n)):new RegExp("\\b"+String(n).toLowerCase().replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"\\b").test(lower)))};
+ const findRecords=(query:string)=>{const qn=norm(query);if(!qn)return {error:"Give a brand, deal, campaign or owner name."};
+  const brands=[...new Map([...namedIn(query),...m.brands.filter(b=>norm(b.name).includes(qn)||norm((b as Row).aka).includes(qn)||m.deals.some(d=>d.brandId===b.id&&(norm(d.name).includes(qn)||norm(d.id)===qn))||norm(b.id)===qn)].map(b=>[b.id,b])).values()].slice(0,5);
+  const campaigns=m.campaigns.filter(c=>norm(c.name).includes(qn)||norm(c.id)===qn);const owners=m.owners.filter(o=>norm(o.name).includes(qn));
+  return brands.length||campaigns.length||owners.length?{brands:brands.map(dossier),campaigns,owners}:{matches:0,note:"No brand, deal, campaign or owner matches '"+query+"'. Try a shorter part of the name."}};
+ expose("find_records","Look up a brand, deal, campaign or team member by name or id. For a brand returns its full record: deal stage, proposed and confirmed value, owner, days in stage, stage history, invoices, payments, recent interactions, tasks and calls.",a=>findRecords(String(a.query||"")),{...obj({query:{type:"string",description:"Name or id, e.g. 'Coca-Cola' or 'DL003'."}}),required:["query"]});
+ expose("list_deals","List deals with brand, stage, value, owner and days in stage. Optional filters by stage and owner name.",a=>{const st=norm(a.stage),ow=norm(a.owner);return m.deals.filter(d=>(!st||norm(d.stage).includes(st))&&(!ow||norm(d.owner).includes(ow))).map(d=>({id:d.id,brand:d.brand,stage:d.stage.replaceAll("_"," "),value:d.value,confirmedValue:d.confirmedValue,owner:d.owner,daysInStage:d.daysInStage,stalled:d.stalled}))},obj({stage:{type:"string",description:"prospecting, contacted, proposal sent, negotiating, partner confirmed, lost"},owner:{type:"string"}}));
+ expose("get_forecast","Committed, base and stretch cash forecast; optionally simulate recovering stalled deals or adding partners.",args=>scenarioForecast(m,args),obj({recover:{type:"number"},partners:{type:"number"}}));
+ expose("propose_actions","Draft this week's action plan (open deals for warm qualified brands, follow up the largest stalled deals, pause Stop campaigns). The user must confirm it in the UI.",propose);
+ expose("what_changed","Compare the snapshot with an earlier date: new confirmations, deals, stage moves, leaks and forecast change.",a=>compareSnapshots(state(list,{...ctx,asOf:String(a.from||from||dateAdd(date,-7))}).snap,m),obj({from:{type:"string",description:"Earlier date, YYYY-MM-DD."}}));
+ expose("compare_segments","Warm vs cold channel counts and cash side by side.",()=>["warm","cold"].map(channel=>{const n=state(list,{...ctx,filters:{...filters,channel}}).snap;return {channel,counts:n.counts,cash:n.cash}}));
+ // Fetch the obvious evidence up front so a question about a named brand, or the overall status, can be answered in one model call.
+ const named=namedIn(question).slice(0,3),preloaded:Record<string,unknown>=named.length?{find_records:{brands:named.map(dossier)}}:{get_pacing:simple.get_pacing[1]};
  const logs:GeminiLogEntry[]=[];const enabled=geminiConfigured();
- const result=enabled?await askCopilot({question,asOf:date,context:{page:b.page,filters,coverage:simple.data_coverage},history:history.map(h=>({role:h.role,content:h.content})),tools,log:e=>logs.push(e)}):localAnswer(s,followUp(question)?[...history].reverse().find(h=>h.role==="user"&&!followUp(String(h.content)))?.content+" "+question:question,{prior:from?state(list,{...ctx,asOf:from}).snap:undefined});
+ const result=enabled?await askCopilot({question,asOf:date,preloaded,context:{page:b.page,filters,coverage:simple.data_coverage[1]},history:history.map(h=>({role:h.role,content:h.content})),tools,log:e=>logs.push(e)}):localAnswer(s,followUp(question)?[...history].reverse().find(h=>h.role==="user"&&!followUp(String(h.content)))?.content+" "+question:question,{prior:from?state(list,{...ctx,asOf:from}).snap:undefined});
  if(!enabled&&/do it|preview|take action|apply plan/i.test(question))propose();
  if(!enabled&&/how much cash does|forecast change/i.test(question)){const last=s.extras.proposals.filter(p=>p.status==="confirmed"&&p.type==="weekly").at(-1);if(last)result.answer+=" Base forecast change since approval: "+rupees(m.forecast.base-last.baseBefore)+"."}
  const reply={...result,engine:enabled?"Copilot":"Local report",proposalId:proposal?.id,asOf:date};

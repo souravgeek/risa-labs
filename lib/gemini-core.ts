@@ -50,17 +50,24 @@ export function markCooling(model: string, error: unknown) {
   const retry = Number(/retry in ([\d.]+)s/i.exec(text)?.[1] ?? /"retryDelay":\s*"([\d.]+)s"/.exec(text)?.[1] ?? 60);
   cooling.set(model, Date.now() + Math.min(Math.max(retry, 30), 3600) * 1000);
 }
-export async function generate(purpose: string, params: GenerateContentParameters, log?: GeminiLogger) {
+/** `timeoutMs` abandons a model that hangs and moves to the next one in the chain (the last model gets no timeout). */
+export async function generate(purpose: string, params: GenerateContentParameters, log?: GeminiLogger, opts: { timeoutMs?: number } = {}) {
   const chain = [params.model, ...fallbackModels().filter(m => m !== params.model)];
   const ready = chain.filter(m => !isCooling(m));
   // The requested model keeps priority unless it recently stalled; fallbacks are ordered by recent health.
   const order = rankModels(ready.length ? ready : chain, m => m, true);
+  const outer = params.config?.abortSignal as AbortSignal | undefined;
   let lastError: unknown;
   for (const [index, model] of order.entries()) {
     const started = Date.now();
     const entry: GeminiLogEntry = { purpose, model, promptVersion: 'campusfest-v1', latencyMs: 0, tokensIn: 0, tokensOut: 0, toolCalls: [] };
+    const timed = Boolean(opts.timeoutMs) && index < order.length - 1;
+    const ctl = new AbortController();
+    const timer = timed ? setTimeout(() => ctl.abort(new Error('timeout')), opts.timeoutMs) : undefined;
+    const forward = () => ctl.abort(outer?.reason);
+    outer?.addEventListener('abort', forward, { once: true });
     try {
-      const result = await client().models.generateContent({ ...params, model });
+      const result = await client().models.generateContent({ ...params, model, config: { ...params.config, abortSignal: timed || outer ? ctl.signal : undefined } });
       entry.tokensIn = result.usageMetadata?.promptTokenCount ?? 0;
       entry.tokensOut = result.usageMetadata?.candidatesTokenCount ?? 0;
       entry.toolCalls = (result.functionCalls || []).flatMap(call => call.name ? [call.name] : []);
@@ -68,11 +75,15 @@ export async function generate(purpose: string, params: GenerateContentParameter
       return result;
     } catch (error) {
       lastError = error;
-      entry.error = error instanceof Error ? error.name + (transientError(error) ? ' (overloaded, trying fallback)' : '') : 'provider error';
-      const aborted = (params.config?.abortSignal as AbortSignal | undefined)?.aborted;
-      if (!transientError(error) || aborted || index === order.length - 1) throw error;
+      const timedOut = ctl.signal.aborted && !outer?.aborted;
+      entry.error = timedOut ? 'timeout (trying fallback)' : error instanceof Error ? error.name + (transientError(error) ? ' (overloaded, trying fallback)' : '') : 'provider error';
+      if (outer?.aborted || index === order.length - 1) throw error;
+      if (timedOut) { markSlow(model); continue; }
+      if (!transientError(error)) throw error;
       markCooling(model, error);
     } finally {
+      clearTimeout(timer);
+      outer?.removeEventListener('abort', forward);
       entry.latencyMs = Date.now() - started;
       await log?.(entry);
     }
